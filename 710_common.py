@@ -12,28 +12,55 @@ import time
 
 ############################################################
 ### morphological analysis
-def morpheme(sentences):
-	lemmatizer = nltk.stem.WordNetLemmatizer()
-	symbols = ["'", '"', '`', '.', ',', '-', '!', '?', ':', ';', '(', ')']
+def morpheme_freq(sentences):
+	lemmatizer = nltk.WordNetLemmatizer()
+	symbols = ["'", '"', '`', '.', ',', '-', '!', '?', ':', ';', '(', ')', '/']
 	stopwords = nltk.corpus.stopwords.words('english')
 
 	freq = {}
-	for stc in sentences:
+	for stc in nltk.sent_tokenize(sentences):
+		stc = stc.lower()
 		tokens = nltk.word_tokenize(stc)
-		for tkn in tokens:
-			if tkn in stopwords + symbols:
+		tagged = nltk.pos_tag(tokens)
+		
+		for tag in tagged:
+			if tag[0] in stopwords + symbols:
 				continue
-			if tkn.strip().replace(".","",1).isdigit():
+			if tag[0].strip().replace(".","",1).isdigit():
 				continue
-			if tkn.strip().replace(',',"",1).isdigit():
+			if tag[0].strip().replace(',',"",1).isdigit():
 				continue
-			tkn = tkn.encode("UTF-8")
-			w = lemmatizer.lemmatize(tkn)
+			w = lemmatizer.lemmatize(tag[0])
 			if len(w) <= 1:
 				continue
 			freq.setdefault(w, 0)
 			freq[w] += 1
 	return freq
+
+
+def morpheme_list(sentences):
+	lemmatizer = nltk.WordNetLemmatizer()
+	symbols = ["'", '"', '`', '.', ',', '-', '!', '?', ':', ';', '(', ')', '/']
+	stopwords = nltk.corpus.stopwords.words('english')
+	
+	list = []
+	for stc in nltk.sent_tokenize(sentences):
+		stc = stc.lower()
+		tokens = nltk.word_tokenize(stc)
+		tagged = nltk.pos_tag(tokens)
+		
+		for tag in tagged:
+			if tag[0] in stopwords + symbols:
+				continue
+			if tag[0].strip().replace(".","",1).isdigit():
+				continue
+			if tag[0].strip().replace(',',"",1).isdigit():
+				continue
+			w = lemmatizer.lemmatize(tag[0])
+			if len(w) <= 1:
+				continue
+			list.append(w)
+	return list
 
 
 ############################################################
