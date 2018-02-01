@@ -12,36 +12,11 @@ import time
 
 ############################################################
 ### morphological analysis
-def morpheme_freq(sentences):
-	lemmatizer = nltk.WordNetLemmatizer()
-	symbols = ["'", '"', '`', '.', ',', '-', '!', '?', ':', ';', '(', ')', '/']
-	stopwords = nltk.corpus.stopwords.words('english')
-
-	freq = {}
-	for stc in nltk.sent_tokenize(sentences):
-		stc = stc.lower()
-		tokens = nltk.word_tokenize(stc)
-		tagged = nltk.pos_tag(tokens)
-		
-		for tag in tagged:
-			if tag[0] in stopwords + symbols:
-				continue
-			if tag[0].strip().replace(".","",1).isdigit():
-				continue
-			if tag[0].strip().replace(',',"",1).isdigit():
-				continue
-			w = lemmatizer.lemmatize(tag[0])
-			if len(w) <= 1:
-				continue
-			freq.setdefault(w, 0)
-			freq[w] += 1
-	return freq
-
-
 def morpheme_list(sentences):
 	lemmatizer = nltk.WordNetLemmatizer()
 	symbols = ["'", '"', '`', '.', ',', '-', '!', '?', ':', ';', '(', ')', '/']
 	stopwords = nltk.corpus.stopwords.words('english')
+	pattern = re.compile("^[0-9'+-./=`]+")
 	
 	list = []
 	for stc in nltk.sent_tokenize(sentences):
@@ -56,11 +31,42 @@ def morpheme_list(sentences):
 				continue
 			if tag[0].strip().replace(',',"",1).isdigit():
 				continue
+			if pattern.search(tag[0]):
+				continue
 			w = lemmatizer.lemmatize(tag[0])
 			if len(w) <= 1:
 				continue
 			list.append(w)
 	return list
+
+
+def morpheme_freq(sentences):
+	lemmatizer = nltk.WordNetLemmatizer()
+	symbols = ["'", '"', '`', '.', ',', '-', '!', '?', ':', ';', '(', ')', '/']
+	stopwords = nltk.corpus.stopwords.words('english')
+	pattern = re.compile("^[0-9'+-./=`]+")
+	
+	freq = {}
+	for stc in nltk.sent_tokenize(sentences):
+		stc = stc.lower()
+		tokens = nltk.word_tokenize(stc)
+		tagged = nltk.pos_tag(tokens)
+		
+		for tag in tagged:
+			if tag[0] in stopwords + symbols:
+				continue
+			if tag[0].strip().replace(".","",1).isdigit():
+				continue
+			if tag[0].strip().replace(',',"",1).isdigit():
+				continue
+			if pattern.search(tag[0]):
+				continue
+			w = lemmatizer.lemmatize(tag[0])
+			if len(w) <= 1:
+				continue
+			freq.setdefault(w, 0)
+			freq[w] += 1
+	return freq
 
 
 ############################################################
