@@ -23,7 +23,7 @@ connector = MySQLdb.connect(host="localhost", db="rawdata_control", user=auth[0]
 # tmp data
 tmp_data = {}
 cursor = connector.cursor()
-sql = u"SELECT rawdata_path FROM rawdata_control WHERE source = 'wos' AND entry_time < '"+lconf.trained_datetime+u"' ORDER BY entry_time ASC limit "+str(52*lconf.trained_period)+u";"
+sql = u"SELECT rawdata_path FROM rawdata_control WHERE source = 'wos' AND entry_time < '"+lconf.datetime_dictionary+u"' ORDER BY entry_time DESC limit "+str(52*lconf.period_dictionary)+u";"
 cursor.execute(sql)
 rawdata_pathes = cursor.fetchall()
 connector.commit()
@@ -34,7 +34,7 @@ words = []
 check_ut = []
 for rdp in rawdata_pathes:
 	files = os.listdir(rdp[0])
-	if i > lconf.limit_dictionary:
+	if i >= lconf.limit_dictionary:
 		break
 
 	for file in files:
@@ -64,7 +64,7 @@ for rdp in rawdata_pathes:
 				# morphological analysis
 				####################
 				text = " ".join([cell[header_map['TI']], cell[header_map['AB']], cell[header_map['ID']], cell[header_map['DE']]])
-				words_tmp = lcommon.morpheme_list(text.decode('utf-8'))
+				words_tmp = lcommon.morpheme_list(lconf.ngram_dictionary, text.decode('utf-8'))
 				words.append(words_tmp)
 				####################
 
@@ -79,7 +79,8 @@ for rdp in rawdata_pathes:
 			if flag == 0 and line == "":
 				flag = 1
 		f.close()
-print i
+print lconf.ngram_dictionary, lconf.limit_dictionary, i
+del check_ut
 
 
 ####################
@@ -88,12 +89,12 @@ print i
 from gensim import corpora
 
 # make output dir
-if not os.path.exists(conf.suppl_720_dir):
-	os.mkdir(conf.suppl_720_dir)
+if not os.path.exists(lconf.suppl_720_dir):
+	os.mkdir(lconf.suppl_720_dir)
 
 dictionary = corpora.Dictionary(words)
 dictionary.filter_extremes(no_below=2, no_above=0.80)
-dictionary.save_as_text(conf.suppl_720_dir+"/_dictionary.txt")
+dictionary.save_as_text(lconf.suppl_720_dir+"/_dictionary.txt")
 
 
 
