@@ -7,10 +7,11 @@ lcommon = __import__("710_common")
 
 import codecs
 import MySQLdb
+import re
 import os
+import sys
 
 from gensim import corpora, models
-import gc
 
 dictionary = corpora.Dictionary.load_from_text(lconf.suppl_730_dir+"/"+lconf.dictionary_file)
 
@@ -27,7 +28,8 @@ connector = MySQLdb.connect(host="localhost", db="rawdata_control", user=auth[0]
 # tmp data
 tmp_data = {}
 cursor = connector.cursor()
-sql = u"SELECT rawdata_path FROM rawdata_control WHERE source = 'wos' AND entry_time < '"+lconf.datetime_trained+u"' ORDER BY entry_time DESC limit "+str(52*lconf.period_trained)+u";"
+sql = u"SELECT rawdata_path FROM rawdata_control WHERE source = 'wos' AND entry_time >= '"+lconf.datetime_s_trained+u"' AND entry_time < '"+lconf.datetime_e_trained+u"' ORDER BY entry_time DESC;"
+
 cursor.execute(sql)
 rawdata_pathes = cursor.fetchall()
 connector.commit()
@@ -35,7 +37,11 @@ cursor.close()
 
 i = 0
 last_rawdata = ""
+check_rdp = []
 for rdp in rawdata_pathes:
+	if rdp[0] in check_rdp:
+		continue
+	check_rdp.append(rdp[0])
 	files = os.listdir(rdp[0])
 	if i >= lconf.limit_record4journal:
 		break
@@ -63,6 +69,7 @@ for rdp in rawdata_pathes:
 					continue
 				ut = cell[header_map['UT']]
 				so = cell[header_map['SO']].lower()
+				so = re.sub(r'[/]+', '', so)
 				check_ut.append(ut)
 				i += 1
 
@@ -87,28 +94,44 @@ for rdp in rawdata_pathes:
 				flag = 1
 		f.close()
 		last_rawdata = rdp[0] + "/" + file
-#		print rdp[0], file, i, len(words2)
 
 	####################
 	# extract feature
 	####################
 	for so in words2.keys():
+		# log
+		fa = open("730_2.log", 'a')
+		fa.write("["+so+"]: Start extract feature\r\n")
+		fa.write("["+so+"]: 104\r\n")
 		corpus = [dictionary.doc2bow(words2[so])]
+		fa.write("["+so+"]: 106\r\n")
 		lda = models.ldamodel.LdaModel(corpus=corpus, num_topics=lconf.lda_num_topics, id2word=dictionary, alpha=lconf.lda_alpha)
 
-		fa = open(lconf.suppl_730_dir+"/"+so+".txt", 'a')
+		fa.write("["+so+"]: 109\r\n")
+		fw = open(lconf.suppl_730_dir+"/"+so+".tmp", 'w')
 		for i in range(lconf.lda_num_topics):
-			fa.write('TOPIC:'+str(i)+'__'+lda.print_topic(i, topn=lconf.topn).encode("utf-8")+"\r\n")
+			fw.write('TOPIC:'+str(i)+'__'+lda.print_topic(i, topn=lconf.topn).encode("utf-8")+"\r\n")
+		fw.close()
 		fa.close()
 
-	print lconf.limit_record4journal, i, len(words2), last_rawdata
-	del check_ut
-	del words2
-	gc.collect()
+		words2[so] = []
 
+	####################
+	# output
+	####################
+	for so in words2.keys():
+		fa = open(lconf.suppl_730_dir+"/"+so+".txt", 'a')
+		f = open(lconf.suppl_730_dir+"/"+so+".tmp", 'r')
+		for line in f.readlines():
+			line = line.rstrip()
+			fa.write(line+"\r\n")
+		f.close()
+		fa.close()
+		os.remove(lconf.suppl_730_dir+"/"+so+".tmp")
 
+	# log
+	fa = open("730.log", 'a')
+	fa.write(rdp[0]+"\t"+str(lconf.limit_record4journal)+"\t"+str(i)+"\t"+str(len(words2))+"\t"+last_rawdata+"\r\n")
+	fa.close()
 
-
-
-
-
+	break	#test

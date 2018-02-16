@@ -15,7 +15,8 @@ import time
 def morpheme_list(ngram, sentences):
 	lemmatizer = nltk.WordNetLemmatizer()
 	stopwords = nltk.corpus.stopwords.words('english')
-	pattern = re.compile("^[0-9'+-./=`]+")
+	pattern = re.compile("^['+-./=`*:\_]+")	# best
+	patnum = re.compile("[0-9]+")
 	
 	list = []
 	for stc in nltk.sent_tokenize(sentences):
@@ -28,11 +29,9 @@ def morpheme_list(ngram, sentences):
 				continue
 			if tokens[i] in stopwords:
 				continue
-			if tokens[i].strip().replace(".","",1).isdigit():
-				continue
-			if tokens[i].strip().replace(',',"",1).isdigit():
-				continue
 			if pattern.search(tokens[i]):
+				continue
+			if patnum.search(tokens[i]):
 				continue
 			wd = tokens[i]
 
@@ -44,12 +43,11 @@ def morpheme_list(ngram, sentences):
 					continue
 				if tokens[i+1] in stopwords:
 					continue
-				if tokens[i+1].strip().replace(".","",1).isdigit():
-					continue
-				if tokens[i+1].strip().replace(',',"",1).isdigit():
-					continue
 				if pattern.search(tokens[i+1]):
 					continue
+				if patnum.search(tokens[i]):
+					continue
+				tokens[i+1] = lemmatizer.lemmatize(tokens[i+1])
 				wd += " " + tokens[i+1]
 
 			# tri-gram
@@ -60,12 +58,11 @@ def morpheme_list(ngram, sentences):
 					continue
 				if tokens[i+2] in stopwords:
 					continue
-				if tokens[i+2].strip().replace(".","",1).isdigit():
-					continue
-				if tokens[i+2].strip().replace(',',"",1).isdigit():
-					continue
 				if pattern.search(tokens[i+2]):
 					continue
+				if patnum.search(tokens[i]):
+					continue
+				tokens[i+2] = lemmatizer.lemmatize(tokens[i+2])
 				wd += " " + tokens[i+2]
 	
 			wd = lemmatizer.lemmatize(wd)
@@ -76,9 +73,9 @@ def morpheme_list(ngram, sentences):
 
 def morpheme_freq(ngram, sentences):
 	lemmatizer = nltk.WordNetLemmatizer()
-	symbols = ["'", '"', '`', '.', ',', '-', '!', '?', ':', ';', '(', ')', '/']
 	stopwords = nltk.corpus.stopwords.words('english')
-	pattern = re.compile("^[0-9'+-./=`]+")
+	pattern = re.compile("^['+-./=`*:\_]+")	# best
+	patnum = re.compile("[0-9]+")
 	
 	freq = {}
 	for stc in nltk.sent_tokenize(sentences):
@@ -92,11 +89,9 @@ def morpheme_freq(ngram, sentences):
 				continue
 			if tokens[i] in stopwords:
 				continue
-			if tokens[i].strip().replace(".","",1).isdigit():
-				continue
-			if tokens[i].strip().replace(',',"",1).isdigit():
-				continue
 			if pattern.search(tokens[i]):
+				continue
+			if patnum.search(tokens[i]):
 				continue
 			wd = tokens[i]
 
@@ -108,12 +103,11 @@ def morpheme_freq(ngram, sentences):
 					continue
 				if tokens[i+1] in stopwords:
 					continue
-				if tokens[i+1].strip().replace(".","",1).isdigit():
-					continue
-				if tokens[i+1].strip().replace(',',"",1).isdigit():
-					continue
 				if pattern.search(tokens[i+1]):
 					continue
+				if patnum.search(tokens[i]):
+					continue
+				tokens[i+1] = lemmatizer.lemmatize(tokens[i+1])
 				wd += " " + tokens[i+1]
 			
 			# tri-gram
@@ -124,12 +118,11 @@ def morpheme_freq(ngram, sentences):
 					continue
 				if tokens[i+2] in stopwords:
 					continue
-				if tokens[i+2].strip().replace(".","",1).isdigit():
-					continue
-				if tokens[i+2].strip().replace(',',"",1).isdigit():
-					continue
 				if pattern.search(tokens[i+2]):
 					continue
+				if patnum.search(tokens[i]):
+					continue
+				tokens[i+2] = lemmatizer.lemmatize(tokens[i+2])
 				wd += " " + tokens[i+2]
 
 			wd = lemmatizer.lemmatize(wd)

@@ -7,19 +7,20 @@ ngram = "uni"					# "uni", "bi", "tri"
 
 # for 720
 ngram_dictionary = "tri"		# "uni", "bi", "tri"
-limit_dictionary = 100000		# use at least X records for dictionary (max: 100000)
-datetime_dictionary = "2018-01-01 00:00:00"
-period_dictionary = 1				# show past X years
+limit_dictionary = 1000000		# use at least X records for dictionary (max: 1000000)
+datetime_s_dictionary = "2017-10-01 00:00:00"
+datetime_e_dictionary = "2018-01-01 00:00:00"
 suppl_720_dir = "../s720_3"		# dictionary directory
 
 # for 730
-limit_record4journal = 1000000	# use at least X records for feature of journals
-datetime_trained = "2018-01-01 00:00:00"
-period_trained = 1				# show past X years
+limit_record4journal = 3000000	# use at least X records for feature of journals
+datetime_s_trained = "2017-01-01 00:00:00"
+#datetime_e_trained = "2018-01-01 00:00:00"
+datetime_e_trained = "2017-12-17 00:00:00"
 
 suppl_730_dir = "../s720"		# dictionary directory
-dictionary_file = "_dictionary.00100000.txt"
-topn = 100
+dictionary_file = "_dictionary.txt"
+topn = 1000
 lda_num_topics = 1
 lda_alpha = 1.0
 
@@ -27,8 +28,9 @@ lda_alpha = 1.0
 # for 740
 limit_test = 1000
 similarity = "cosine"			# "cosine", "jaccard", "dice", "simpson"
+sim_word_count = 1000
 suppl_740_dir = "../s740"
-output_740_file = "uni.00001000.cosine.tsv"
+output_740_file = "uni.00100000.cosine.1000.tsv"
 	# naming rule of connecting with period: ngram, limit_record4journal, similarity
 
 # To apply for your paper

@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 conf = __import__("000_conf")
-lcommon = __import__("710_common")
 lconf = __import__("700_conf")
+lcommon = __import__("710_common")
 
 import codecs
 import MySQLdb
 import os
 
+from gensim import corpora
 
 
 ############################################################
@@ -23,7 +24,7 @@ connector = MySQLdb.connect(host="localhost", db="rawdata_control", user=auth[0]
 # tmp data
 tmp_data = {}
 cursor = connector.cursor()
-sql = u"SELECT rawdata_path FROM rawdata_control WHERE source = 'wos' AND entry_time < '"+lconf.datetime_dictionary+u"' ORDER BY entry_time DESC limit "+str(52*lconf.period_dictionary)+u";"
+sql = u"SELECT rawdata_path FROM rawdata_control WHERE source = 'wos' AND entry_time >= '"+lconf.datetime_s_dictionary+u"' AND entry_time < '"+lconf.datetime_e_dictionary+u"' ORDER BY entry_time DESC;"
 cursor.execute(sql)
 rawdata_pathes = cursor.fetchall()
 connector.commit()
@@ -32,7 +33,11 @@ cursor.close()
 i = 0
 words = []
 check_ut = []
+check_rdp = []
 for rdp in rawdata_pathes:
+	if rdp[0] in check_rdp:
+		continue
+	check_rdp.append(rdp[0])
 	files = os.listdir(rdp[0])
 	if i >= lconf.limit_dictionary:
 		break
@@ -79,23 +84,19 @@ for rdp in rawdata_pathes:
 			if flag == 0 and line == "":
 				flag = 1
 		f.close()
-print lconf.ngram_dictionary, lconf.limit_dictionary, i
-del check_ut
 
+	####################
+	# make dictionary
+	####################
+	# make output dir
+	if not os.path.exists(lconf.suppl_720_dir):
+		os.mkdir(lconf.suppl_720_dir)
 
-####################
-# make dictionary
-####################
-from gensim import corpora
+	dictionary = corpora.Dictionary(words)
+	dictionary.filter_extremes(no_below=2, no_above=0.80, keep_n=1000000)
+	dictionary.save_as_text(lconf.suppl_720_dir+"/_dictionary.txt")
 
-# make output dir
-if not os.path.exists(lconf.suppl_720_dir):
-	os.mkdir(lconf.suppl_720_dir)
-
-dictionary = corpora.Dictionary(words)
-dictionary.filter_extremes(no_below=2, no_above=0.80)
-dictionary.save_as_text(lconf.suppl_720_dir+"/_dictionary.txt")
-
-
-
-
+	# log
+	fa = open("720.log", 'a')
+	fa.write(lconf.ngram_dictionary+"\t"+rdp[0]+"\t"+str(i)+"\t"+str(len(open(lconf.suppl_720_dir+"/_dictionary.txt").readlines()))+"\r\n")
+	fa.close()

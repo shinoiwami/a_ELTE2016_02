@@ -50,7 +50,7 @@ if lconf.input_file == "":
 
 	# test data
 	cursor = connector.cursor()
-	sql = u"SELECT rawdata_path FROM rawdata_control WHERE source = 'wos' AND entry_time >= '"+lconf.datetime_trained+u"' ORDER BY entry_time ASC limit "+str(52*lconf.period_trained)+u";"
+	sql = u"SELECT rawdata_path FROM rawdata_control WHERE source = 'wos' AND entry_time >= '"+lconf.datetime_e_trained+u"' ORDER BY entry_time ASC;"
 	cursor.execute(sql)
 	rawdata_pathes = cursor.fetchall()
 	connector.commit()
@@ -58,7 +58,11 @@ if lconf.input_file == "":
 
 	i = 0
 	check_ut = []
+	check_rdp = []
 	for rdp in rawdata_pathes:
+		if rdp[0] in check_rdp:
+			continue
+		check_rdp.append(rdp[0])
 		files = os.listdir(rdp[0])
 		if i >= lconf.limit_test:
 			break
@@ -167,14 +171,15 @@ for ut in test_data.keys():
 		sorted_trained = []
 		for k, v in sorted(trained_data.items(), key=lambda x:x[1], reverse=True):
 			sorted_trained.append(k)
+		sorted_trained = sorted_trained[0:lconf.sim_word_count-1]
 		if lconf.similarity == "jaccard":
-			sim_tmp = lcommon.jaccard_coefficient(test_data[ut].keys(), sorted_trained[0:99])
+			sim_tmp = lcommon.jaccard_coefficient(test_data[ut].keys(), sorted_trained)
 		elif lconf.similarity == "dice":
-			sim_tmp = lcommon.dice_coefficient(test_data[ut].keys(), sorted_trained[0:99])
+			sim_tmp = lcommon.dice_coefficient(test_data[ut].keys(), sorted_trained)
 		elif lconf.similarity == "simpson":
-			sim_tmp = lcommon.simpson_coefficient(test_data[ut].keys(), sorted_trained[0:99])
+			sim_tmp = lcommon.simpson_coefficient(test_data[ut].keys(), sorted_trained)
 		else:	# "cosine"
-			sim_tmp = lcommon.cosine_similarity(test_data[ut].keys(), sorted_trained[0:99])
+			sim_tmp = lcommon.cosine_similarity(test_data[ut].keys(), sorted_trained)
 		
 		i += 1
 		if sim_tmp > 0.0:

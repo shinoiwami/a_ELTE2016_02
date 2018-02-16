@@ -60,22 +60,27 @@ for file in files:
 		n += 1
 
 		for l in range(4, len(cell)-1):
-			if cell[3]+":" in cell[l]:
+			rank = l - 3
+			so = re.sub(r'[/]+', '', cell[3])
+			if so+":" in cell[l]:
+				score = cell[l].split(':')
+				if float(score[1]) == 0.0:
+					break
+				
 				m += 1
 
-				if max_rank == 0 or max_rank > l-3:
-					max_rank = l-3
-				if min_rank == 0 or min_rank < l-3:
-					min_rank = l-3
+				if max_rank == 0 or max_rank > rank:
+					max_rank = rank
+				if min_rank == 0 or min_rank < rank:
+					min_rank = rank
 
-				score = cell[l].split(':')
-				if max_rank == 0 or max_rank > float(score[1]):
+				if max_score == 0 or max_score > float(score[1]):
 					max_score = float(score[1])
-				if min_rank == 0 or min_rank < float(score[1]):
+				if min_score == 0 or min_score < float(score[1]):
 					min_score = float(score[1])
 
-				distribution.setdefault(l-3, 0)
-				distribution[l-3] += 1
+				distribution.setdefault(rank, 0)
+				distribution[rank] += 1
 
 				break
 
